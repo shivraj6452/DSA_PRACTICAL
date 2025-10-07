@@ -1,0 +1,49 @@
+import threading
+import queue
+import time
+import random
+
+# Define a thread-safe queue
+event_queue = queue.Queue()
+
+# Event producer simulating real-time event generation
+def event_producer():
+    event_id = 1
+    while True:
+        # Simulate event generation
+        event_data = {
+            "id": event_id,
+            "timestamp": time.time(),
+            "data": random.randint(1, 100)
+        }
+        event_queue.put(event_data)
+        print(f"[Producer] Event added: {event_data}")
+        event_id += 1
+        time.sleep(random.uniform(0.5, 1.5))  # Random delay between events
+
+# Event consumer processing events in real-time
+def event_consumer():
+    while True:
+        event = event_queue.get()  # Blocks until an item is available
+        print(f"[Consumer] Processing event {event['id']}: {event}")
+        time.sleep(1)  # Simulate time-consuming processing
+        event_queue.task_done()
+
+# Start threads
+producer_thread = threading.Thread(target=event_producer, daemon=True)
+consumer_thread = threading.Thread(target=event_consumer, daemon=True)
+
+producer_thread.start()
+consumer_thread.start()
+
+# Keep the main thread alive
+try:
+    while True:
+        time.sleep(0.1)
+except KeyboardInterrupt:
+    print("Stopped by user.")
+# output
+[Producer] Event added: {'id': 1, 'timestamp': 1694963410.2871914, 'data': 23}
+[Consumer] Processing event 1: {'id': 1, 'timestamp': 1694963410.2871914, 'data': 23}
+[Producer] Event added: {'id': 2, 'timestamp': 1694963411.1083925, 'data': 77}
+[Producer] Event added: {'id': 3, 'timestamp': 1694963412.4932816, 'data': 42}
